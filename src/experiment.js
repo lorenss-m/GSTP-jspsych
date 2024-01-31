@@ -1,7 +1,7 @@
 /**
- * @title object tracking
+ * @title goal inference
  * @description Track moving targets
- * @version 0.1.3
+ * @version 0.1.0
  *
  * @assets assets/
  */
@@ -14,87 +14,59 @@ import FullscreenPlugin from "@jspsych/plugin-fullscreen";
 import SurveyTextPlugin from "@jspsych/plugin-survey-text";
 import SurveyMultiChoicePlugin from "@jspsych/plugin-survey-multi-choice";
 import ExternalHtmlPlugin from "@jspsych/plugin-external-html";
-// import VirtualChinrestPlugin from '@jspsych/plugin-virtual-chinrest';
+
 import InstructionsPlugin from "@jspsych/plugin-instructions";
 import HTMLButtonResponsePlugin from "@jspsych/plugin-html-button-response";
-import HTMLSliderResponsePlugin from "@jspsych/plugin-html-slider-response";
-import MOTPlugin from "./plugins/mot.ts";
+
+import GIPlugin from "./plugins/gi.ts";
+
 import { initJsPsych } from "jspsych";
 // Prolific variables
 const PROLIFIC_URL = 'https://app.prolific.com/submissions/complete?cc=CVJWVV8A';
 // Trials
 import examples from '../assets/examples.json';
-import dataset from '../assets/dataset.json';
 import trial_list from '../assets/trial_list.json';
 
 // Define global experiment variables
 // REVIEW: add more examples?
-const EXAMPLE_TRIAL = examples[0].positions;
+const EXAMPLE_TRIAL = examples[0];
 const N_TRIALS = trial_list.length;
-// const TIME_PER_TRIAL = dataset[0].positions.length / 24;
-var EXP_DURATION = 15 //  5 + (2.0 * TIME_PER_TRIAL) * N_TRIALS / 60.0; // in minutes
-const MOT_DIM = 600; // pixels
-// const STIM_DEG = 10;
-// const PIXELS_ER_UNIT = MOT_DIM / STIM_DEG;
-var CHINREST_SCALE = 1.0; // to adjust pixel dimensions
-// Debug Variables
-const SKIP_PROLIFIC_ID = false;
+
+const BUTTONS = [[4, 3], [4, 6], [4, 9], [8, 2]];
+const AGENT = [7, 6];
+
+var EXP_DURATION = 10
+
+const SKIP_PROLIFIC_ID = true;
 const SKIP_INSTRUCTIONS = false;
-// const SKIP_PROLIFIC_ID = true;
-// const SKIP_INSTRUCTIONS = true;
 
 
-function gen_trial(jspsych,
-    trial_id,
-    positions,
-    reverse = false,
-    targets = true,
-    effort_dial = true,
-    effort_slider = true
-) {
+function gen_trial(jspsych, trial_id, scenario, backgroundImage, buttonPositions, agentPosition) {
+    let subtl = [];
 
-    if (reverse) {
-        positions = positions.toReversed();
+    let sentence  = "The agent "
+    for(let utterance of scenario) { 
+        sentence += utterance
+
+        prompt = "The agent starts on the orange circle. Press one of the green goals, based on the following information: <br> <b>" + sentence + "</b>"
+        console.log(agentPosition);
+        let gi_trial = {
+                type: GIPlugin,
+                backgroundImage: backgroundImage,
+                buttonPositions: buttonPositions,
+                agentPosition: agentPosition,
+                prompt: prompt
+            };
+        subtl.push(gi_trial);
+        sentence += ", ";
     }
-
-    const display_size = MOT_DIM * CHINREST_SCALE;
-
-    const tracking = {
-        type: MOTPlugin,
-        scene: JSON.stringify(positions),
-        targets: 4,
-        object_class: "mot-distractor",
-        target_class: "mot-target",
-        display_size: display_size,
-        target_designation: targets,
-        effort_dial: effort_dial,
-        world_scale: 800.0, // legacy datasets are +- 400 units
-        premotion_dur: 4000.0,
-    };
-
-    const sub_tl = [tracking];
-
-    if (effort_slider) {
-        sub_tl.push({
-            type: HTMLSliderResponsePlugin,
-            stimulus: `<div style="width:${display_size}px;">` +
-                `<p>How effortful was tracking?</p></div>`,
-            require_movement: true,
-            labels: ['None', 'Somewhat', 'A lot']
-        });
-    }
-
     const tl = {
-        timeline: sub_tl,
+        timeline: subtl,
         data: {
-            trial_id: trial_id,
-            reversed: reverse,
-            targets: targets,
-            effort_dial: effort_dial,
-            effort_slider: effort_slider
+            trial_id: trial_id
         }
     };
-    return (tl);
+    return tl;
 };
 
 /**
@@ -117,6 +89,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     });
 
     const timeline = [];
+
+    const env_img = assetPaths.images[0];
 
     // Consent
     timeline.push({
@@ -180,24 +154,12 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         fullscreen_mode: true,
     });
 
-    // Virtual chinrest
-    // timeline.push({
-    //   type: VirtualChinrestPlugin,
-    //   blindspot_reps: 3,
-    //   resize_units: "deg",
-    //   pixels_per_unit: PIXELS_PER_UNIT,
-    //   on_finish: function(data) {
-    //     CHINREST_SCALE = data.scale_factor;
-    //   },
-    // });
-
-
     const instruct_tl = [];
     instruct_tl.push({
         type: InstructionsPlugin,
         pages: [
             `The study is designed to be <i>challenging</i>. <br> ` +
-            ` Sometimes, you'll be certain about what you saw. <br>` +
+            ` Sometimes, you'll be certain about the answer. <br>` +
             `Other times, you won't be -- and this is okay!<br>` +
             `Just give your best guess each time. <br><br>` +
             `Click <b>Next</b> to continue.`,
@@ -209,30 +171,18 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             ` Your responses will only be useful to us if you remain focused. <br><br>` +
             `Click <b>Next</b> to continue.`,
 
-            "In this task, you will observe a series of objects move on the screen.<br>" +
-            "At the beginning of each instance of the task, you will see <b>4</b> of the <b>8</b> " +
-            "objects highlighted in <span style='color:blue'>BLUE</span> " +
-            `designating them as <span style="color:blue;"><b>targets</b></span>.<br>` +
-            "Shortly after, the <span style='color:blue'>BLUE</span> indication will " +
-            "disappear and the objects will begin to move.<br>" +
-            "Your main task is to keep track of the targets as they move.<br>" +
-            "Click <b>Next</b> to see an example of a dynamic scene with targets.",
-        ],
-        show_clickable_nav: true,
-        // show_page_number: true,
-        page_label: "<b>Instructions</b>",
-        allow_backward: false,
-    });
-
-    instruct_tl.push(gen_trial(jsPsych, 0, EXAMPLE_TRIAL, false, false, false, false));
-
-    instruct_tl.push({
-        type: InstructionsPlugin,
-        pages: [
-            `At the end of each instance of the task, you need to select the <span style="color:blue"><b>4 targets</b></span> <span class="query-object"></span> by clicking on the objects with your mouse.<br>` +
-            `If you make a mistake in your selection, you can deselect by clicking on the object again.<br>` +
-            `You <b>need</b> to select 4 objects to be able to progress. <br>` +
-            `If you lost track of some of the targets, just make your best guess as to which objects are targets.<br>` +
+            "In this task, you will see an agent telling you about its way to a goal<br>" +
+            "At the beginning of each task, you will see <b>4</b> " +
+            "goals highlighted as squares in <span style='color:green'>GREEN</span> " +
+            "and an agent starting position as a circle in <span style='color:orange'>ORANGE</span>.<br>" +
+            "Also, you will see a sentence describing the agent's movement. " +
+            "The sentence will describe, in steps, the actions the agent has taken, " +
+            "and your main task is to decide which of the 4 goals the agent is moving to. <br>",
+            
+            `The sentence will be revealed in a set of utterances, and you will get a better idea of the goal after each utterance.<br>` +
+            `After each utterance, you must indicate which goal you think the agent is moving to.<br>` +
+            `The next utterance will be displayed after you select a goal.<br>` +
+            `These utterances often might be nonsensical, and that is by design - try to use all the information given to determine the most likely option. If you find yourself guessing, that is okay, give it your best go!<br>` +
             "Click <b>Next</b> to give it a try.",
         ],
         show_clickable_nav: true,
@@ -241,70 +191,10 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         allow_backward: false,
     });
 
-    instruct_tl.push(gen_trial(jsPsych, 0, EXAMPLE_TRIAL, false, true, false, false));
+    let agent_example = [7, 5];
 
-    instruct_tl.push({
-        type: InstructionsPlugin,
-        pages: [
-            "<span style='overflow-wrap:anywhere'>Sometimes, this tracking task may seem relatively easy, and you may find that you can do " +
-            " it without much effort at all – e.g. when all of the targets just happen to be off" +
-            " by themselves.  But other times, it might seem much more difficult and effortful " +
-            "– e.g. when a target and a non-target item get very close to each other. <br>  " +
-            "We want to get a sense of how effortful the tracking task is for you, on a " +
-            "moment-by-moment basis, and you’ll tell us this by moving your computer mouse " +
-            "around while you’re tracking the targets. </span> ",
+    instruct_tl.push(gen_trial(jsPsych, 0, EXAMPLE_TRIAL, env_img, BUTTONS, agent_example));
 
-            "<span style='overflow-wrap:anywhere'> Whenever you find tracking to be especially effortful, you should move your mouse to the right" +
-            " – far to the right for especially effortful moments, and only a bit to the right for moments that" +
-            " are only mildly effortful.  And similarly, whenever you find tracking to be especially easy," +
-            " you should move your mouse to the left – far to the left for especially easy moments, and only " +
-            "a bit to the left for moments that are only mildly easy. </span><br>" +
-            "You do not need to move the slider from one end of the screen to the other. " +
-            "Use whatever range of motion is comfortable to you. But, please make sure to keep the range consistent across examples –  " +
-            "e.g. If a moment in tracking is especially effortful, try to be consistent with how far to the right you move your mouse. </span>" +
-            "Click <b>Next</b> to practice; Please adjust your computer's volume so that the hum is comfortable.",
-        ],
-        show_clickable_nav: true,
-        // show_page_number: true,
-        page_label: "<b>Instructions</b>",
-        allow_backward: false,
-    });
-
-    instruct_tl.push(gen_trial(jsPsych, 0, EXAMPLE_TRIAL, false, true, true, false));
-
-    instruct_tl.push({
-        type: InstructionsPlugin,
-        pages: [
-            "<span style='overflow-wrap:anywhere'>In addition to your moment-by-moment sense of effort, we also want to get a sense " +
-            " from you of how effortful each tracking example is overall. <br>" +
-            "After you have indicated which objects you believe are targets, you can record your overall experience of effort on the provided slider." +
-            " You can move the slider anywhere between the two extremes. " +
-            "If that was an especially effortful example, you should move the slider " +
-            " far to the right.  If it was an especially easy example, " +
-            "you should move the slider far to the left.  And in general, " +
-            "you should just try to place the slider to match the overall sense of effort involved</span><br>" +
-            "Click <b>Next</b> to practice.",
-        ],
-        show_clickable_nav: true,
-        // show_page_number: true,
-        page_label: "<b>Instructions</b>",
-        allow_backward: false,
-    });
-
-    instruct_tl.push(gen_trial(jsPsych, 0, EXAMPLE_TRIAL, false));
-
-    instruct_tl.push({
-        type: InstructionsPlugin,
-        pages: [
-            "<span style='overflow-wrap:anywhere'>Remember, the main task is to correctly identify the " +
-            "4 targets. The secondary task is to move the slider to indicate your moment-by-moment sense of effort</span><br>" +
-            "Click <b>Next</b> to continue.",
-        ],
-        show_clickable_nav: true,
-        // show_page_number: true,
-        page_label: "<b>Instructions</b>",
-        allow_backward: false,
-    });
     // comprehension check
     const comp_check = {
         type: SurveyMultiChoicePlugin,
@@ -315,9 +205,9 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             prompt: "Which of the following is <b>TRUE</b>",
             name: 'check1',
             options: [
-                "A) Before motion, targets are indicated in black",
-                "B) The main task is to indicate which objects are targets",
-                "C) Objects will disappear throughout the motion phase",
+                "A) The targets are indicated with an orange circle",
+                "B) The targets will remain visible throughout the whole trial",
+                "C) The targets will move around the screen in a random pattern",
             ],
             required: true
         },
@@ -325,9 +215,9 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             prompt: " Which of the following statements is <b>FALSE</b>:",
             name: 'check2',
             options: [
-                "A) The secondary task is to indicate your sense of effort while tracking",
-                "B) You should maintain an arm-length distance from your monitor",
-                "C) You should move the slider to the left if tracking is effortful"
+                "A) You should maintain an arm-length distance from your monitor",
+                "B) You should listen to audio instructions while performing the task",
+                "C) You should click one of the goals after each utterance"
             ],
             required: true
         },
@@ -384,11 +274,19 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     };
 
     // add exp trials with random shuffle, unique per session
-    for (const trial of jsPsych.randomization.shuffle(trial_list)) {
+    for (let i = 0; i < trial_list.length; i++) {
         // for (const trial of trial_list) {
-        const [tid, reverse] = trial.slice(0, 2);
-        const positions = dataset[tid - 1].positions;
-        timeline.push(gen_trial(jsPsych, tid, positions, reverse));
+        timeline.push(gen_trial(jsPsych, i+1, trial_list[i], env_img, BUTTONS, AGENT));
+        if (i < trial_list.length - 1) {
+            timeline.push({
+                type: HTMLButtonResponsePlugin,
+                stimulus: `Good job! This is the end of task ${i+1}. Press Next to continue to the next task.`,
+                choices: ['Next'],
+                data: {
+                    type: "wait",
+                }
+            });
+        }
     };
 
 
@@ -396,7 +294,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     timeline.push({
         type: SurveyTextPlugin,
         preamble: `<h2><b>Thank you for helping us with our study! ` +
-            `This study was designed to be difficult and we value your responses. </b></h2><br><br> ` +
+            `We value your responses. </b></h2><br><br> ` +
             `Please fill out the (optional) survey below and click <b>Done</b> to complete the experiment. <br> `,
         questions: [
             {

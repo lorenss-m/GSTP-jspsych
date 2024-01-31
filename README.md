@@ -1,9 +1,9 @@
-# Multiple object tracking
+# Goal Inference
 
-This repo contains the jsPsych implementation of Pylyshyn's Multiple Object Tracking paradigm.
+This repo contains the jsPsych implementation of Goal Inference from language.
 There are several additional extensions such as ...
 
-The main logic is defined under `src/experiment.js` and the plugin `plugin/mot.ts`.
+The main logic is defined under `src/experiment.js` and the plugin `plugin/gi.ts`.
 
 >NOTE: This is a work in progress! API subject to change
 

@@ -12,8 +12,6 @@ yarn-error.log*
 .npm
 .eslintcache
 
-.jspsych-builder/
-assets/
 packaged/
 data/
 prolific/
