@@ -1,7 +1,7 @@
 /**
  * @title goal inference
  * @description Track moving targets
- * @version 0.1.0
+ * @version 0.1.2
  *
  * @assets assets/
  */
@@ -22,7 +22,7 @@ import GIPlugin from "./plugins/gi.ts";
 
 import { initJsPsych } from "jspsych";
 // Prolific variables
-const PROLIFIC_URL = 'https://app.prolific.com/submissions/complete?cc=CVJWVV8A';
+const PROLIFIC_URL = 'https://app.prolific.com/submissions/complete?cc=CRL9VXEZ';
 // Trials
 import examples from '../assets/examples.json';
 import trial_list from '../assets/trial_list.json';
@@ -37,7 +37,7 @@ const AGENT = [7, 6];
 
 var EXP_DURATION = 10
 
-const SKIP_PROLIFIC_ID = true;
+const SKIP_PROLIFIC_ID = false;
 const SKIP_INSTRUCTIONS = false;
 
 
@@ -212,7 +212,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             required: true
         },
         {
-            prompt: " Which of the following statements is <b>FALSE</b>:",
+            prompt: " Which of the following statements is <b>TRUE</b>:",
             name: 'check2',
             options: [
                 "A) You should maintain an arm-length distance from your monitor",

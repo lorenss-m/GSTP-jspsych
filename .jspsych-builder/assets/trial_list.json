@@ -1,19 +1,81 @@
 [
-    ["went 3 left"],
-    ["went then right", "did 4 south"],
-    ["walked 3 called", "walked swaps left"],
-    ["then three rolled", "moved gives attempted"],
-    ["went 1 up", "seemed three west", "drove 2 up"],
-    ["went 1 performs", "moved three west", "did two south"],
-    ["proceeded and sailed", "drove one east", "walked 3 south"],
-    ["drove 1 then", "moved 3 did", "went 2 west"],
-    ["went 2 left", "walked one south", "moved one west", "went two down"],
-    ["moved waited left", "jumped 2 up", "drove 1 west", "drove one up"],
-    ["walked two there", "ran one up", "walked one left", "moved 2 north"],
-    ["moved two wanted", "went 1 down", "submitted initial west", "seemed two down"],
-    ["went 1 randomly", "grabbed 1 hoped", "walked two up", "seemed two left"],
-    ["commited two moves", "walked 1 recovers", "went reached west", "drove 2 north"],
-    ["went opened down", "walked immediately follows", "jumped two went", "went 2 west"],
-    ["grabbed 1 had", "walked one hit", "centered one left", "jumped two north", "entered one west"],
-    ["threw one west", "went 1 south", "moved 1 had", "grabbed 1 south", "went 1 left", "moved 1 down"]
+    [
+        "went 3 left"
+    ],
+    [
+        "went one right",
+        "drove 4 south"
+    ],
+    [
+        "went 1 up",
+        "seemed three west",
+        "drove 2 up"
+    ],
+    [
+        "moved 1 down",
+        "went one more",
+        "walked 3 south"
+    ],
+    [
+        "moved two wanted",
+        "went 1 down",
+        "submitted initial west",
+        "seemed two down"
+    ],
+    [
+        "then three rolled",
+        "moved gives attempted"
+    ],
+    [
+        "walked two there",
+        "ran one up",
+        "walked one left",
+        "moved 2 north"
+    ],
+    [
+        "went 2 left",
+        "walked one south",
+        "moved one west",
+        "went two down"
+    ],
+    [
+        "drove 1 there",
+        "moved 3 did",
+        "went 2 west"
+    ],
+    [
+        "went 1 randomly",
+        "walked 1 hoped",
+        "walked two up",
+        "seemed two left"
+    ],
+    [
+        "went undercover left"
+    ],
+    [
+        "moved waited left",
+        "jumped 2 up",
+        "drove 1 west",
+        "drove one up"
+    ],
+    [
+        "proceeded and sailed",
+        "drove one east",
+        "walked 3 south"
+    ],
+    [
+        "went 1 performs",
+        "moved three west",
+        "did two south"
+    ],
+    [
+        "walked 3 called",
+        "walked swaps left"
+    ],
+    [
+        "went opened down",
+        "walked immediately follows",
+        "jumped two went",
+        "went 2 west"
+    ]
 ]
